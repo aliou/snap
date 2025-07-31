@@ -143,4 +143,46 @@ local function max_length0(tbl)
   return max
 end
 _2amodule_2a["max-length"] = max_length0
+local function allocate_custom(total, configs)
+  local allocated = {}
+  local remaining = total
+  local fill_indices = {}
+  local fill_count = 0
+  for i, config in ipairs(configs) do
+    if (type(config) == "number") then
+      allocated[i] = config
+      remaining = (remaining - config)
+    elseif (type(config) == "string") then
+      if config:match("^%d+%%$") then
+        local percent = tonumber(config:match("^(%d+)%%$"))
+        local height = math.floor((total * percent * 0.01))
+        do end (allocated)[i] = height
+        remaining = (remaining - height)
+      elseif (config == "fill") then
+        table.insert(fill_indices, i)
+        fill_count = (fill_count + 1)
+        do end (allocated)[i] = 0
+      else
+        allocated[i] = 1
+        remaining = (remaining - 1)
+      end
+    else
+      allocated[i] = 1
+      remaining = (remaining - 1)
+    end
+  end
+  if (fill_count > 0) then
+    local per_fill = math.floor((remaining / fill_count))
+    for _, idx in ipairs(fill_indices) do
+      allocated[idx] = per_fill
+    end
+    if ((remaining % fill_count) > 0) then
+      allocated[fill_indices[1]] = (allocated[fill_indices[1]] + (remaining % fill_count))
+    else
+    end
+  else
+  end
+  return allocated
+end
+_2amodule_2a["allocate-custom"] = allocate_custom
 return _2amodule_2a

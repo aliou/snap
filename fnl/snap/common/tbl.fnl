@@ -91,3 +91,56 @@
                _ val (ipairs tbl)]
     (let [len (length (tostring val))]
       (if (> len max) len max))))
+
+(defn allocate-custom [total configs]
+  "Allocates space based on custom height configurations
+   Supports: fixed numbers, percentages (e.g. '30%'), and 'fill'"
+  (local allocated [])
+  (var remaining total)
+  (local fill-indices [])
+  (var fill-count 0)
+  
+  (each [i config (ipairs configs)]
+    (if (= (type config) :number)
+        ;; Fixed height
+        (do
+          (tset allocated i config)
+          (set remaining (- remaining config)))
+        
+        (= (type config) :string)
+        (if (config:match "^%d+%%$")
+            ;; Percentage height
+            (let [percent (tonumber (config:match "^(%d+)%%$"))
+                  height (math.floor (* total percent 0.01))]
+              (tset allocated i height)
+              (set remaining (- remaining height)))
+            
+            (= config :fill)
+            ;; Fill remaining space
+            (do
+              (table.insert fill-indices i)
+              (set fill-count (+ fill-count 1))
+              (tset allocated i 0))
+            
+            ;; Default to 1 line
+            (do
+              (tset allocated i 1)
+              (set remaining (- remaining 1))))
+        
+        ;; Default to 1 line for any other type
+        (do
+          (tset allocated i 1)
+          (set remaining (- remaining 1)))))
+  
+  ;; Distribute remaining space among fill items
+  (when (> fill-count 0)
+    (let [per-fill (math.floor (/ remaining fill-count))]
+      (each [_ idx (ipairs fill-indices)]
+        (tset allocated idx per-fill))
+      ;; Add any remainder to the first fill item
+      (when (> (% remaining fill-count) 0)
+        (tset allocated (. fill-indices 1)
+              (+ (. allocated (. fill-indices 1))
+                 (% remaining fill-count))))))
+  
+  allocated)
