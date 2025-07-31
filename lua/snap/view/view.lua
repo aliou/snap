@@ -28,10 +28,21 @@ local function layout(config)
   local padding = (index * size.padding)
   local total_borders = ((config["total-views"] - 1) * size.border)
   local total_paddings = ((config["total-views"] - 1) * size.padding)
-  local sizes = tbl.allocate((height - total_borders - total_paddings), config["total-views"])
+  local sizes
+  if config["view-heights"] then
+    sizes = tbl["allocate-custom"]((height - total_borders - total_paddings), config["view-heights"])
+  else
+    sizes = tbl.allocate((height - total_borders - total_paddings), config["total-views"])
+  end
   local height0 = sizes[config.index]
   local col_offset = math.floor((width * size["view-width"]))
-  return {width = (width - col_offset - size.padding - size.padding - size.border), height = height0, row = (row + tbl.sum(tbl.take(sizes, index)) + border + padding), col = (col + col_offset + (size.border * 2) + size.padding), title = "Preview", focusable = false}
+  local title
+  if (config["view-config"] and config["view-config"].title) then
+    title = config["view-config"].title
+  else
+    title = "Preview"
+  end
+  return {width = (width - col_offset - size.padding - size.padding - size.border), height = height0, row = (row + tbl.sum(tbl.take(sizes, index)) + border + padding), col = (col + col_offset + (size.border * 2) + size.padding), title = title, focusable = false}
 end
 local function create(config)
   local bufnr = buffer.create()
@@ -65,10 +76,10 @@ local function create(config)
     end
   end
   local view = {update = update, delete = delete, bufnr = bufnr, winnr = winnr, width = layout_config.width, height = layout_config.height}
-  local function _5_()
+  local function _7_()
     return view:update()
   end
-  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _5_})
+  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _7_})
   return view
 end
 _2amodule_2a["create"] = create

@@ -14,15 +14,20 @@
         padding (* index size.padding)
         total-borders (* (- config.total-views 1) size.border)
         total-paddings (* (- config.total-views 1) size.padding)
-        sizes (tbl.allocate (- height total-borders total-paddings) config.total-views)
+        sizes (if config.view-heights
+                  (tbl.allocate-custom (- height total-borders total-paddings) config.view-heights)
+                  (tbl.allocate (- height total-borders total-paddings) config.total-views))
         height (. sizes config.index)
-        col-offset (math.floor (* width size.view-width))]
+        col-offset (math.floor (* width size.view-width))
+        title (if (and config.view-config config.view-config.title)
+                  config.view-config.title
+                  :Preview)]
     {:width (- width col-offset size.padding size.padding size.border)
      : height
      :row (+ row (tbl.sum (tbl.take sizes index)) border padding)
      :col (+ col col-offset (* size.border 2) size.padding)
      :focusable false
-     :title :Preview}))
+     : title}))
 
 (defn create [config]
   "Creates a view"
