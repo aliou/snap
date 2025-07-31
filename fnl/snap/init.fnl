@@ -208,7 +208,14 @@
   (asserttable? config.views "snap.run 'views' must be a table")
   (when config.views
     (each [_ view (ipairs config.views)]
-      (assertfunction view "snap.run each view in 'views' must be a function")))
+      (if (= (type view) :function)
+          ;; Plain function producer
+          nil
+          (and (= (type view) :table) view.producer)
+          ;; Table with producer
+          (assertfunction view.producer "snap.run each view.producer must be a function")
+          ;; Invalid
+          (assert false "snap.run each view in 'views' must be a function or a table with a producer"))))
   (assertfunction? config.loading "snap.run 'loading' must be a function")
   (assertboolean? config.reverse "snap.run 'reverse' must be a boolean")
   (assertstring? config.initial_filter "snap.run 'initial_filter' must be a string")
@@ -310,8 +317,32 @@
   ;; Views need to be recreated when we hide/show
   (fn create-views []
     (when (has-views)
-      (each [index producer (ipairs config.views)]
-        (local view {:view (view.create {: layout : index : total-views}) : producer})
+      ;; Collect view heights and configs first
+      (local view-heights [])
+      (local view-configs [])
+      (each [index view-spec (ipairs config.views)]
+        (if (and (= (type view-spec) :table) view-spec.producer)
+            ;; Custom view configuration
+            (do
+              (tset view-heights index (or view-spec.height :fill))
+              (tset view-configs index view-spec))
+            ;; Plain producer
+            (do
+              (tset view-heights index :fill)
+              (tset view-configs index nil))))
+      
+      ;; Create views with collected configurations
+      (each [index view-spec (ipairs config.views)]
+        (local producer (if (and (= (type view-spec) :table) view-spec.producer)
+                           view-spec.producer
+                           view-spec))
+        (local view-config (. view-configs index))
+        (local view {:view (view.create {: layout 
+                                        : index 
+                                        : total-views
+                                        : view-heights
+                                        : view-config}) 
+                    : producer})
         (table.insert views view))))
 
   ;; Create the views
