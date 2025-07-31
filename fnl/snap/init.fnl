@@ -251,8 +251,12 @@
   ;; Stores the original window to so we can pass it back to the select function
   (local original-winnr (vim.api.nvim_get_current_win))
 
-  ;; Configures a default or custom prompt
-  (local prompt (string.format "%s " (or config.prompt :Find>)))
+  ;; Configures a default or custom prompt with optional suffix
+  (local prompt-base (or config.prompt :Find>))
+  (local prompt-with-suffix (if config.suffix
+                              (string.format "%s%s" prompt-base config.suffix)
+                              prompt-base))
+  (local prompt (string.format "%s " prompt-with-suffix))
 
   ;; Stores the selected items, used for multiselect
   (var selected {})
