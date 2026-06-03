@@ -14,18 +14,28 @@
         padding (* index size.padding)
         total-borders (* (- config.total-views 1) size.border)
         total-paddings (* (- config.total-views 1) size.padding)
+        has-views (> config.total-views 0)
+        stacked? (and has-views (< width size.narrow-threshold))
+        available-height (- height size.border size.border size.padding)
+        results-height (if stacked? (math.floor (* available-height (- 1 size.view-width))) 0)
+        view-alloc (if stacked?
+                     (- available-height results-height total-borders total-paddings)
+                     (- height total-borders total-paddings))
         sizes (if config.view-heights
-                  (tbl.allocate-custom (- height total-borders total-paddings) config.view-heights)
-                  (tbl.allocate (- height total-borders total-paddings) config.total-views))
+                  (tbl.allocate-custom view-alloc config.view-heights)
+                  (tbl.allocate view-alloc config.total-views))
         height (. sizes config.index)
         col-offset (math.floor (* width size.view-width))
         title (if (and config.view-config config.view-config.title)
                   config.view-config.title
                   :Preview)]
-    {:width (- width col-offset size.padding size.padding size.border)
+    {:width (if stacked? width (- width col-offset size.padding size.padding size.border))
      : height
-     :row (+ row (tbl.sum (tbl.take sizes index)) border padding)
-     :col (+ col col-offset (* size.border 2) size.padding)
+     :row (if stacked?
+            (let [results-row (if config.reverse (+ row size.border size.padding size.padding) row)]
+              (+ results-row results-height size.border border padding))
+            (+ row (tbl.sum (tbl.take sizes index)) border padding))
+     :col (if stacked? col (+ col col-offset (* size.border 2) size.padding))
      :focusable false
      : title}))
 

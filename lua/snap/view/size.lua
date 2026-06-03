@@ -16,4 +16,6 @@ local padding = 1
 _2amodule_2a["padding"] = padding
 local view_width = 0.5
 _2amodule_2a["view-width"] = view_width
+local narrow_threshold = 120
+_2amodule_2a["narrow-threshold"] = narrow_threshold
 return _2amodule_2a

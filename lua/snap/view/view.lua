@@ -28,11 +28,26 @@ local function layout(config)
   local padding = (index * size.padding)
   local total_borders = ((config["total-views"] - 1) * size.border)
   local total_paddings = ((config["total-views"] - 1) * size.padding)
+  local has_views = (config["total-views"] > 0)
+  local stacked_3f = (has_views and (width < size["narrow-threshold"]))
+  local available_height = (height - size.border - size.border - size.padding)
+  local results_height
+  if stacked_3f then
+    results_height = math.floor((available_height * (1 - size["view-width"])))
+  else
+    results_height = 0
+  end
+  local view_alloc
+  if stacked_3f then
+    view_alloc = (available_height - results_height - total_borders - total_paddings)
+  else
+    view_alloc = (height - total_borders - total_paddings)
+  end
   local sizes
   if config["view-heights"] then
-    sizes = tbl["allocate-custom"]((height - total_borders - total_paddings), config["view-heights"])
+    sizes = tbl["allocate-custom"](view_alloc, config["view-heights"])
   else
-    sizes = tbl.allocate((height - total_borders - total_paddings), config["total-views"])
+    sizes = tbl.allocate(view_alloc, config["total-views"])
   end
   local height0 = sizes[config.index]
   local col_offset = math.floor((width * size["view-width"]))
@@ -42,7 +57,31 @@ local function layout(config)
   else
     title = "Preview"
   end
-  return {width = (width - col_offset - size.padding - size.padding - size.border), height = height0, row = (row + tbl.sum(tbl.take(sizes, index)) + border + padding), col = (col + col_offset + (size.border * 2) + size.padding), title = title, focusable = false}
+  local _6_
+  if stacked_3f then
+    _6_ = width
+  else
+    _6_ = (width - col_offset - size.padding - size.padding - size.border)
+  end
+  local _8_
+  if stacked_3f then
+    local results_row
+    if config.reverse then
+      results_row = (row + size.border + size.padding + size.padding)
+    else
+      results_row = row
+    end
+    _8_ = (results_row + results_height + size.border + border + padding)
+  else
+    _8_ = (row + tbl.sum(tbl.take(sizes, index)) + border + padding)
+  end
+  local _12_
+  if stacked_3f then
+    _12_ = col
+  else
+    _12_ = (col + col_offset + (size.border * 2) + size.padding)
+  end
+  return {width = _6_, height = height0, row = _8_, col = _12_, title = title, focusable = false}
 end
 local function create(config)
   local bufnr = buffer.create()
@@ -76,10 +115,10 @@ local function create(config)
     end
   end
   local view = {update = update, delete = delete, bufnr = bufnr, winnr = winnr, width = layout_config.width, height = layout_config.height}
-  local function _7_()
+  local function _17_()
     return view:update()
   end
-  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _7_})
+  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _17_})
   return view
 end
 _2amodule_2a["create"] = create

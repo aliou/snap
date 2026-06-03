@@ -2,26 +2,19 @@
                               tbl snap.common.tbl}
                      require-macros [snap.macros]})
 
-;; Based off the concept that you should have at least 80 cols for preview and results (when all real estate is available)
-(local default-min-width (* 80 2))
-
-(fn preview-disabled [min-width]
-  "Disables previews based on screen size"
-  (<= (vim.api.nvim_get_option :columns) (or min-width default-min-width)))
-
 (fn hide-views [config]
-  "Gives reasonable defaults for how previews should be display based on manual setting, custom function or display size
-  
-   if config.preview is nil or is true
-     then determine if preview is disabled based on screen size
+  "Gives reasonable defaults for how previews should be displayed
+
    if config.preview is set and is false
      then always hide
    if config.preview is a function
-     then call the function and return the negation of the result"
+     then call the function and return the negation of the result
+   otherwise
+     show views (the layout system handles narrow screens by stacking below)"
   (match (type config.preview)
-    :nil (preview-disabled config.preview_min_width)
-    :boolean (or (= config.preview false) (preview-disabled config.preview_min_width))
-    :function (not (config.preview))))
+    :boolean (= config.preview false)
+    :function (not (config.preview))
+    _ false))
 
 (fn format-prompt [suffix prompt]
   "Formats a prompt"

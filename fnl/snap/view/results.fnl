@@ -7,9 +7,13 @@
 
 (fn layout [config]
   "Creates the results layout"
-  (let [{: width : height : row : col} (config.layout)]
-    {:width (if (config.has-views) (- (math.floor (* width size.view-width)) size.padding size.padding) width)
-     :height (- height size.border size.border size.padding)
+  (let [{: width : height : row : col} (config.layout)
+        has-views (config.has-views)
+        stacked? (and has-views (< width size.narrow-threshold))
+        available-height (- height size.border size.border size.padding)
+        results-height (if stacked? (math.floor (* available-height (- 1 size.view-width))) available-height)]
+    {:width (if (and has-views (not stacked?)) (- (math.floor (* width size.view-width)) size.padding size.padding) width)
+     :height results-height
      :title :Results
      :row (if config.reverse (+ row size.border size.padding size.padding) row)
      : col

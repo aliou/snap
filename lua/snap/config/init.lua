@@ -14,18 +14,15 @@ local snap, tbl, _ = require("snap"), require("snap.common.tbl"), nil
 _2amodule_locals_2a["snap"] = snap
 _2amodule_locals_2a["tbl"] = tbl
 _2amodule_locals_2a["_"] = _
-local default_min_width = (80 * 2)
-local function preview_disabled(min_width)
-  return (vim.api.nvim_get_option("columns") <= (min_width or default_min_width))
-end
 local function hide_views(config)
   local _1_ = type(config.preview)
-  if (_1_ == "nil") then
-    return preview_disabled(config.preview_min_width)
-  elseif (_1_ == "boolean") then
-    return ((config.preview == false) or preview_disabled(config.preview_min_width))
+  if (_1_ == "boolean") then
+    return (config.preview == false)
   elseif (_1_ == "function") then
     return not config.preview()
+  elseif true then
+    local _0 = _1_
+    return false
   else
     return nil
   end

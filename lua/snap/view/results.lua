@@ -22,19 +22,28 @@ local function layout(config)
   local height = _let_1_["height"]
   local row = _let_1_["row"]
   local col = _let_1_["col"]
-  local _2_
-  if config["has-views"]() then
-    _2_ = (math.floor((width * size["view-width"])) - size.padding - size.padding)
+  local has_views = config["has-views"]()
+  local stacked_3f = (has_views and (width < size["narrow-threshold"]))
+  local available_height = (height - size.border - size.border - size.padding)
+  local results_height
+  if stacked_3f then
+    results_height = math.floor((available_height * (1 - size["view-width"])))
   else
-    _2_ = width
+    results_height = available_height
   end
-  local _4_
+  local _3_
+  if (has_views and not stacked_3f) then
+    _3_ = (math.floor((width * size["view-width"])) - size.padding - size.padding)
+  else
+    _3_ = width
+  end
+  local _5_
   if config.reverse then
-    _4_ = (row + size.border + size.padding + size.padding)
+    _5_ = (row + size.border + size.padding + size.padding)
   else
-    _4_ = row
+    _5_ = row
   end
-  return {width = _2_, height = (height - size.border - size.border - size.padding), title = "Results", row = _4_, col = col, focusable = false}
+  return {width = _3_, height = results_height, title = "Results", row = _5_, col = col, focusable = false}
 end
 local function create(config)
   local bufnr = buffer.create()
@@ -70,10 +79,10 @@ local function create(config)
     end
   end
   local view = {update = update, delete = delete, bufnr = bufnr, winnr = winnr, width = layout_config.width, height = layout_config.height}
-  local function _9_()
+  local function _10_()
     return view:update()
   end
-  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _9_})
+  vim.api.nvim_create_autocmd("VimResized", {group = group, callback = _10_})
   return view
 end
 _2amodule_2a["create"] = create

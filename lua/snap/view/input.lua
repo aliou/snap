@@ -22,8 +22,10 @@ local function layout(config)
   local height = _let_1_["height"]
   local row = _let_1_["row"]
   local col = _let_1_["col"]
+  local has_views = config["has-views"]()
+  local stacked_3f = (has_views and (width < size["narrow-threshold"]))
   local _2_
-  if config["has-views"]() then
+  if (has_views and not stacked_3f) then
     _2_ = (math.floor((width * size["view-width"])) - size.padding - size.padding)
   else
     _2_ = width
